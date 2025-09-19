@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚗 Multiplication Car Driving Game</title>
+<style>
+  body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a, #004466);
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    font-size: 2.5em;
+    color: #ffcc00;
+    margin: 20px;
+  }
+  #question {
+    font-size: 2em;
+    margin: 15px 0;
+  }
+  #answer {
+    font-size: 1.4em;
+    padding: 5px;
+    width: 100px;
+    text-align: center;
+  }
+  #feedback {
+    font-size: 1.5em;
+    height: 40px;
+    margin-top: 10px;
+  }
+  #score {
+    font-size: 1.2em;
+    margin-top: 10px;
+  }
+  #controls button {
+    font-size: 1.2em;
+    margin: 5px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #ffcc00;
+    color: #000;
+    font-weight: bold;
+  }
+  #map {
+    margin: 20px auto;
+    width: 90%;
+    height: 120px;
+    background: #333;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stop {
+    width: 50px;
+    height: 50px;
+    background: #00ff99;
+    border-radius: 50%;
+    position: absolute;
+    top: 35px;
+    transform: translateX(-50%);
+    text-align: center;
+    line-height: 50px;
+    font-weight: bold;
+  }
+  #car {
+    width: 60px;
+    height: 40px;
+    background: red;
+    border-radius: 8px;
+    position: absolute;
+    top: 40px;
+    left: 0;
+    transition: left 0.8s ease;
+  }
+</style>
+</head>
+<body>
+
+<h1>🚗 Multiplication Car Driving Game</h1>
+<div id="levelInfo">Level 1: Support Level</div>
+<div id="question">Question will appear here</div>
+<input type="text" id="answer" placeholder="Your answer">
+<button onclick="checkAnswer()">Submit</button>
+<div id="feedback"></div>
+<div id="score">Score: 0/0</div>
+
+<div id="controls">
+  <button onclick="restartGame()">🔄 Restart</button>
+  <button onclick="pauseGame()">⏸ Pause</button>
+  <button onclick="resumeGame()">▶ Resume</button>
+  <button onclick="stopGame()">⏹ Stop</button>
+</div>
+
+<div id="map">
+  <div id="car"></div>
+</div>
+
+<script>
+let level = 1;
+let questionCount = 0;
+let correctCount = 0;
+let totalQuestions = 20;
+let paused = false;
+let stopped = false;
+
+const car = document.getElementById("car");
+const map = document.getElementById("map");
+
+function generateStops() {
+  map.querySelectorAll(".stop").forEach(s => s.remove());
+  for (let i = 1; i <= totalQuestions; i++) {
+    let stop = document.createElement("div");
+    stop.className = "stop";
+    stop.style.left = (i * (map.clientWidth / totalQuestions)) + "px";
+    stop.textContent = i;
+    map.appendChild(stop);
+  }
+}
+generateStops();
+
+function generateQuestion() {
+  if (paused || stopped) return;
+
+  if (questionCount >= totalQuestions) {
+    endLevel();
+    return;
+  }
+
+  questionCount++;
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").textContent = "";
+
+  let num1, num2;
+  if (level === 1) {
+    num1 = Math.floor(Math.random() * 9) + 1;
+    num2 = Math.floor(Math.random() * 9) + 1;
+  } else if (level === 2) {
+    if (Math.random() < 0.5) {
+      num1 = Math.floor(Math.random() * 9) + 1;
+      num2 = Math.floor(Math.random() * 90) + 10;
+    } else {
+      num1 = Math.floor(Math.random() * 90) + 10;
+      num2 = Math.floor(Math.random() * 9) + 1;
+    }
+  } else {
+    num1 = Math.floor(Math.random() * 90) + 10;
+    num2 = Math.floor(Math.random() * 90) + 10;
+  }
+
+  currentAnswer = num1 * num2;
+  document.getElementById("question").textContent = `Q${questionCount}: ${num1} × ${num2} = ?`;
+  document.getElementById("score").textContent = `Score: ${correctCount}/${questionCount - 1}`;
+}
+
+function checkAnswer() {
+  if (paused || stopped) return;
+
+  let userAns = parseInt(document.getElementById("answer").value);
+  if (userAns === currentAnswer) {
+    correctCount++;
+    document.getElementById("feedback").textContent = "✅ Correct!";
+  } else {
+    document.getElementById("feedback").textContent = `❌ Wrong! Answer was ${currentAnswer}`;
+  }
+  document.getElementById("score").textContent = `Score: ${correctCount}/${questionCount}`;
+
+  moveCar(questionCount);
+  setTimeout(generateQuestion, 1000);
+}
+
+function moveCar(step) {
+  let pos = (step * (map.clientWidth / totalQuestions)) - 25;
+  car.style.left = pos + "px";
+}
+
+function endLevel() {
+  let percent = (correctCount / totalQuestions) * 100;
+  if (percent >= 90) {
+    if (level < 3) {
+      document.getElementById("feedback").textContent = `🎉 You passed Level ${level}! Moving to Level ${level + 1}`;
+      level++;
+      resetLevel();
+    } else {
+      document.getElementById("feedback").textContent = "🏆 Congratulations! You finished all levels!";
+    }
+  } else {
+    document.getElementById("feedback").textContent = `❌ You scored ${percent.toFixed(1)}%. Stay on Level ${level}`;
+    resetLevel();
+  }
+}
+
+function resetLevel() {
+  setTimeout(() => {
+    questionCount = 0;
+    correctCount = 0;
+    document.getElementById("levelInfo").textContent =
+      (level === 1 ? "Level 1: Support Level" :
+       level === 2 ? "Level 2: Proficiency Level" :
+       "Level 3: Advanced Level");
+    generateStops();
+    moveCar(0);
+    generateQuestion();
+  }, 2000);
+}
+
+function restartGame() {
+  level = 1;
+  questionCount = 0;
+  correctCount = 0;
+  paused = false;
+  stopped = false;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("levelInfo").textContent = "Level 1: Support Level";
+  generateStops();
+  moveCar(0);
+  generateQuestion();
+}
+
+function pauseGame() {
+  paused = true;
+  document.getElementById("feedback").textContent = "⏸ Game Paused";
+}
+
+function resumeGame() {
+  if (paused) {
+    paused = false;
+    document.getElementById("feedback").textContent = "▶ Resumed!";
+    generateQuestion();
+  }
+}
+
+function stopGame() {
+  stopped = true;
+  document.getElementById("feedback").textContent = "⏹ Game Stopped";
+  moveCar(0);
+}
+
+let currentAnswer;
+generateQuestion();
+
+// ✅ Enable Enter key to submit
+document.getElementById("answer").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    checkAnswer();
+  }
+});
+</script>
+</body>
+</html>
