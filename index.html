@@ -24,14 +24,17 @@
   }
   #answer {
     font-size: 1.4em;
-    padding: 5px;
-    width: 100px;
+    padding: 8px;
+    width: 200px; /* 🔥 Made input box longer */
     text-align: center;
+    border-radius: 8px;
+    border: 2px solid #ffcc00;
   }
   #feedback {
-    font-size: 1.5em;
-    height: 40px;
-    margin-top: 10px;
+    font-size: 1.6em;
+    height: 50px;
+    margin-top: 15px;
+    font-weight: bold;
   }
   #score {
     font-size: 1.2em;
@@ -47,6 +50,10 @@
     background: #ffcc00;
     color: #000;
     font-weight: bold;
+    transition: transform 0.2s;
+  }
+  #controls button:hover {
+    transform: scale(1.1);
   }
   #map {
     margin: 20px auto;
@@ -112,6 +119,7 @@ let stopped = false;
 
 const car = document.getElementById("car");
 const map = document.getElementById("map");
+let currentAnswer;
 
 function generateStops() {
   map.querySelectorAll(".stop").forEach(s => s.remove());
@@ -163,12 +171,18 @@ function checkAnswer() {
   if (paused || stopped) return;
 
   let userAns = parseInt(document.getElementById("answer").value);
+  let feedback = document.getElementById("feedback");
+
   if (userAns === currentAnswer) {
     correctCount++;
-    document.getElementById("feedback").textContent = "✅ Correct!";
+    let messages = ["🎉 Boom! Correct!", "🚀 Awesome!", "💡 Smart move!", "🔥 Great job!", "🏆 Champion!"];
+    feedback.textContent = messages[Math.floor(Math.random() * messages.length)];
+    feedback.style.color = "#00ff99";
   } else {
-    document.getElementById("feedback").textContent = `❌ Wrong! Answer was ${currentAnswer}`;
+    feedback.textContent = `❌ Oops! The correct answer was ${currentAnswer}`;
+    feedback.style.color = "#ff4444";
   }
+
   document.getElementById("score").textContent = `Score: ${correctCount}/${questionCount}`;
 
   moveCar(questionCount);
@@ -182,16 +196,21 @@ function moveCar(step) {
 
 function endLevel() {
   let percent = (correctCount / totalQuestions) * 100;
+  let feedback = document.getElementById("feedback");
+
   if (percent >= 90) {
     if (level < 3) {
-      document.getElementById("feedback").textContent = `🎉 You passed Level ${level}! Moving to Level ${level + 1}`;
+      feedback.textContent = `🎉 You passed Level ${level}! Moving to Level ${level + 1}`;
+      feedback.style.color = "#00ff99";
       level++;
       resetLevel();
     } else {
-      document.getElementById("feedback").textContent = "🏆 Congratulations! You finished all levels!";
+      feedback.textContent = "🏆 Congratulations! You finished all levels!";
+      feedback.style.color = "#ffcc00";
     }
   } else {
-    document.getElementById("feedback").textContent = `❌ You scored ${percent.toFixed(1)}%. Stay on Level ${level}`;
+    feedback.textContent = `❌ You scored ${percent.toFixed(1)}%. Stay on Level ${level}`;
+    feedback.style.color = "#ff4444";
     resetLevel();
   }
 }
@@ -226,12 +245,14 @@ function restartGame() {
 function pauseGame() {
   paused = true;
   document.getElementById("feedback").textContent = "⏸ Game Paused";
+  document.getElementById("feedback").style.color = "#ffcc00";
 }
 
 function resumeGame() {
   if (paused) {
     paused = false;
     document.getElementById("feedback").textContent = "▶ Resumed!";
+    document.getElementById("feedback").style.color = "#00ff99";
     generateQuestion();
   }
 }
@@ -239,10 +260,10 @@ function resumeGame() {
 function stopGame() {
   stopped = true;
   document.getElementById("feedback").textContent = "⏹ Game Stopped";
+  document.getElementById("feedback").style.color = "#ff4444";
   moveCar(0);
 }
 
-let currentAnswer;
 generateQuestion();
 
 // ✅ Enable Enter key to submit
@@ -255,3 +276,4 @@ document.getElementById("answer").addEventListener("keydown", function(e) {
 </script>
 </body>
 </html>
+
